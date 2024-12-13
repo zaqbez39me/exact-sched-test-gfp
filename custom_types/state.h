@@ -169,19 +169,19 @@ struct state {
         cout << "==============" << endl;
         cout << "{";
         for(int i=0; i<tsLocal.n; i++) {
-            cout << "(" << c[i] << ", " << d(i) << ", " << p[i] << ") ";
+            cout << "(" << (int) c[i] << ", " << d(i) << ", " << (int) p[i] << ") ";
         }
         cout << "}" << endl;
-        cout << "pendJobsNum:\t" << pendJobsNum << endl;
-        cout << "canReleaseBefore:\t";
-        for (int i = 0; i < tsLocal.n; i++) cout << "[" << i << "]: " << jobCanBeReleasedBefore[i] << "\t";
-        cout << endl;
-        cout << "processorAvailable:\t";
-        for (int i = 0; i < tsLocal.n; i++) cout << "[" << i << "]: " << processorAvailableForTau_i[i] << "\t";
-        cout << endl;
-        cout << "procAvailablePrSt:\t";
-        for (int i = 0; i < tsLocal.n; i++) cout << "[" << i << "]: " << prevState_processorAvailableForTau_i[i] << "\t";
-        cout << endl;
+        // cout << "pendJobsNum:\t" << pendJobsNum << endl;
+        // cout << "canReleaseBefore:\t";
+        // for (int i = 0; i < tsLocal.n; i++) cout << "[" << i << "]: " << jobCanBeReleasedBefore[i] << "\t";
+        // cout << endl;
+        // cout << "processorAvailable:\t";
+        // for (int i = 0; i < tsLocal.n; i++) cout << "[" << i << "]: " << processorAvailableForTau_i[i] << "\t";
+        // cout << endl;
+        // cout << "procAvailablePrSt:\t";
+        // for (int i = 0; i < tsLocal.n; i++) cout << "[" << i << "]: " << prevState_processorAvailableForTau_i[i] << "\t";
+        // cout << endl;
         cout << "=============" << endl << endl;
     }
     
