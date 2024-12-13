@@ -40,19 +40,19 @@ ofstream fileResults;
 // 2 9 1 6 10 7 15 1 17 1 17 7 24 1 25 1 39 2 40 1 40 0 0 - Exceeded timeout of 5 mins
 
 // TODO:
-// Add print for initialization
-// Add info about thread pools capacity
-// To merge thread pool avaiability messages and add wating time print (i. e. "Thread pool is ready in ...ms")
-// Replace "Starting threads for 1 state.." with Dominating state search in threads:
-// Replace "1th task state" with "(2, 6) task state" 
-// Make outputs consistent in terms of M_1 (remove underscore)
-// Add message about setting stop flag where it is missing
-// Make less messages about search in task space. Print only one message about which task is processed and time
-// Keep only 4 last digits of each thread in outputs.
-// Remove all the race issues in output
-// Shorted insertion messages for each thread keep only info about insertion finish and time consumed (i. e. "Thread[1234]: Inserted (5, 6) in M0 in 5ms")
-// Fix message about end of insertion. Wrong id now.
-// To discuss the printing the dominating state when found for ensuring algorithm correctness
+// [V] Add print for initialization
+// [V] Add info about thread pools capacity
+// [V] To merge thread pool avaiability messages and add wating time print (i. e. "Thread pool is ready in ...ms")
+// [V] Replace "Starting threads for 1 state.." with Dominating state search in threads:
+// [V] Replace "1th task state" with "(2, 6) task state" 
+// [V] Make outputs consistent in terms of M_1 (remove underscore)
+// [V] Add message about setting stop flag where it is missing
+// [V] Keep only 4 last digits of each thread in outputs.
+// [V] Remove all the race issues in output
+// [V] Shorten insertion messages for each thread, keep only info about insertion finish and time consumed (i. e. "Thread[1234]: Inserted (5, 6) in M0 in 5ms")
+// [V] Fix message about end of insertion. Wrong id now.
+// [-] Make less messages about search in task space. Print only one message about which task is processed and time (Discuss)
+// [-]To discuss the printing the dominating state when found for ensuring algorithm correctness
 
 int main(int argc, char* argv[]) {
     
@@ -305,7 +305,7 @@ int main(int argc, char* argv[]) {
     fileResults << "\t" << sched << "\t" << tExecutionTotal_p1 << "\t" << savedStatesNum;
     fileResults.close();
     
-    cout << "Sporadic burm2018 p1:\t\t" << (total* 1e-9) << " sec,  \t / " << savedStatesNum << " saved states" << "  \t / " << visitedStatesNum << " visited states" << endl;
+    cout << "Sporadic burm2018 p1:\t\t" << (total* 1e-6) << " sec,  \t / " << savedStatesNum << " saved states" << "  \t / " << visitedStatesNum << " visited states" << endl;
     cout << "New algo p1:\t\t" << (newTotal* 1e-9) << " sec,  \t / " << newSavedStatesNum << " saved states" << "  \t / " << newVisitedStatesNum << " visited states";
     
     if (sched) cout << "  \t / SCHED" << endl;

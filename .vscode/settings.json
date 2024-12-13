@@ -59,6 +59,10 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "climits": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "xtree": "cpp",
+        "locale": "cpp",
+        "xstring": "cpp",
+        "xhash": "cpp"
     }
 }

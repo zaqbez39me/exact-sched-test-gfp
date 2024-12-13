@@ -20,6 +20,8 @@
 #include <thread>
 #include <condition_variable>
 #include <set>
+#include <sstream>
+#include <functional>
 
 using namespace std;
 using namespace std::chrono;
@@ -150,6 +152,14 @@ namespace NS_itasks
         return {res.first->second, res.second};
     }
 
+    string str_thread_id() {
+        ostringstream ss;
+
+        ss << this_thread::get_id();
+
+        return ss.str().substr(0,4);
+    }
+
     template <typename Key>
     class Node1
     {
@@ -226,11 +236,7 @@ namespace NS_itasks
         void insert(const unsigned short left, const unsigned short right, const state *state, unsigned int id, const unsigned short total, bool *stop,
                     unsigned short int *finished_num, mutex *mut, condition_variable *cv, mutex *cv_m)
         {
-            if (verbose) {
-                print_mut.lock();
-                cout << "\t\t\tThread ID=" << this_thread::get_id() << ": Inserting in M_" << task_space_id << " started" << endl;
-                print_mut.unlock();
-            }
+            auto insertion_start_time = high_resolution_clock::now();
             auto left_tree = tree.try_emplace(left, map<unsigned short int, Node1<unsigned short int>>());
             auto right_tree = left_tree.first->second.try_emplace(right, Node1<unsigned short int>());
             for (int i = 0; i < state->tsLocal.n; ++i)
@@ -252,7 +258,8 @@ namespace NS_itasks
             right_tree.first->second.ids.insert(id);
             if (verbose) {
                 print_mut.lock();
-                cout << "\t\t\tThread ID=" << this_thread::get_id() << ": Insertion in M_" << task_space_id << " finished" << endl;
+                double insertion_time = duration_cast<chrono::nanoseconds>(high_resolution_clock::now() - insertion_start_time).count();
+                cout << "\t\t\tThread[" << str_thread_id() << "]: Inserted (" << state->c << ", " << state->p << ") in M" << task_space_id << " in " << (insertion_time * 1e-6) << "ms" << endl;
                 print_mut.unlock();
             }
         }
@@ -266,7 +273,7 @@ namespace NS_itasks
             const unsigned short right = state->p[ind];
             if (verbose) {
                 print_mut.lock();
-                cout << "\t\t\tThread ID=" << this_thread::get_id() << ": Examination in M_" << task_space_id << " started" << endl;
+                cout << "\t\t\tThread[" << str_thread_id() << "]: Examination in M" << task_space_id << " started" << endl;
                 print_mut.unlock();
             }
 
@@ -284,13 +291,13 @@ namespace NS_itasks
                 *stop = true;
                 if (verbose) {
                     print_mut.lock();
-                    cout << "\t\t\tThread ID=" << this_thread::get_id() << ": task state in M_" << task_space_id << " is not dominated" << endl;
+                    cout << "\t\t\tThread[" << str_thread_id() << "]: task state in M" << task_space_id << " is not dominated" << endl;
                     print_mut.unlock();
                 }
             } else {
                 if (verbose) {
                     print_mut.lock();
-                    cout << "\t\t\tThread ID=" << this_thread::get_id() << ": task state in M_" << task_space_id << " is dominated" << endl;
+                    cout << "\t\t\tThread[" << str_thread_id() << "]: task state in M" << task_space_id << " is dominated" << endl;
                     print_mut.unlock();
                 }
             }
@@ -304,7 +311,7 @@ namespace NS_itasks
             }
             mut->unlock();
             if (verbose) {
-                cout << "\t\t\tThread ID=" << this_thread::get_id() << ": Examination in M_" << task_space_id << " finished" << endl;
+                cout << "\t\t\tThread[" << str_thread_id() << "]: Examination in M" << task_space_id << " finished" << endl;
             }
         }
 
@@ -316,7 +323,7 @@ namespace NS_itasks
             const unsigned short right = state->p[ind];
             if (verbose) {
                 print_mut.lock();
-                cout << "Thread ID=" << this_thread::get_id() << ": Searching dominated for task state(c="<< left << ", p=" << right << ") in task space " << task_space_id << endl;
+                cout << "Thread[" << str_thread_id() << "]: Searching dominated for task state(c="<< left << ", p=" << right << ") in task space " << task_space_id << endl;
                 print_mut.unlock();
             }
 
@@ -335,13 +342,13 @@ namespace NS_itasks
                 *stop = true;
                 if (verbose) {
                     print_mut.lock();
-                    cout << "Thread ID=" << this_thread::get_id() << ": task state(c="<< left << ", p=" << right << ") in task space " << task_space_id << " is not dominating any yet!" << endl;
+                    cout << "Thread[" << str_thread_id() << "]: task state(c="<< left << ", p=" << right << ") in task space " << task_space_id << " is not dominating any yet!" << endl;
                     print_mut.unlock();
                 }
             } else {
                 if (verbose) {
                     print_mut.lock();
-                    cout << "Thread ID=" << this_thread::get_id() << ": task state(c="<< left << ", p=" << right << ") in task space " << task_space_id << " is dominating some states!" << endl;
+                    cout << "Thread[" << str_thread_id() << "]: task state(c="<< left << ", p=" << right << ") in task space " << task_space_id << " is dominating some states!" << endl;
                     print_mut.unlock();
                 }
             }
@@ -383,8 +390,8 @@ namespace NS_itasks
                 {
                     if (verbose) {
                         print_mut.lock();
-                        cout << "\t\t\tThread ID=" << this_thread::get_id() << ": Not found any dominating tasks from other mas in M_" << task_space_id << endl;
-                        cout << "\t\t\tThread ID=" << this_thread::get_id() << ": Setting examination stop flag" << endl;
+                        cout << "\t\t\tThread[" << str_thread_id() << "]: Not found any dominating tasks from other trees in M" << task_space_id << endl;
+                        cout << "\t\t\tThread[" << str_thread_id() << "]: Setting examination stop flag" << endl;
                         print_mut.unlock();
                     }
                     *stop = true;
@@ -396,8 +403,8 @@ namespace NS_itasks
                 {
                     if (verbose) {
                         print_mut.lock();
-                        cout << "\t\t\tThread ID=" << this_thread::get_id() << ": State " << cur_id << " occured to be dominating  in M_" << task_space_id << endl;
-                        cout << "\t\t\tThread ID=" << this_thread::get_id() << ": Setting examination stop flag" << endl;
+                        cout << "\t\t\tThread[" << str_thread_id() << "]: State " << cur_id << " occured to be dominating in M" << task_space_id << endl;
+                        cout << "\t\t\tThread[" << str_thread_id() << "]: Setting examination stop flag" << endl;
                         print_mut.unlock();
                     }
                     *res = true;
@@ -523,11 +530,18 @@ namespace NS_itasks
     class FastMultidimSearchMultiThread : public IFastMultidimSearch
     {
     public:
-        FastMultidimSearchMultiThread(int dim_num, int domain)
+        FastMultidimSearchMultiThread(int dim_num, int domain, int dominating_threads = 4, int insertion_threads = 4)
         {
+            if (verbose) {
+                lock_guard<mutex> lk(print_mut);
+                cout << "Initializing structures:" << endl;
+                cout << "\t* dominating thread-pool of size " << dominating_threads;
+                cout << "\t* insertion thread-pool of size " << insertion_threads;
+                cout << "\t* array M of size " << dim_num;
+            }
             this->N = dim_num;
-            pool = new ThreadPool(4);
-            pool2 = new ThreadPool(4);
+            dominating_pool = new ThreadPool(dominating_threads);
+            insertion_pool = new ThreadPool(insertion_threads);
             dims.reserve(N);
             for (unsigned short int i = 0; i < N; ++i)
                 dims.emplace_back(16, i, N);
@@ -564,14 +578,14 @@ namespace NS_itasks
             //                    { return *insertion_stop; });
             if (new_state->c[N - 1] > 0)
                 pen++;
-            n++;
-            dominating_counter->emplace_back();
-            dominated_counter->emplace_back();
             if(verbose) {
                 print_mut.lock();
                 cout << "\t\tInsertion of state " << n << " finished" << endl;
                 print_mut.unlock();
             }
+            n++;
+            dominating_counter->emplace_back();
+            dominated_counter->emplace_back();
         }
 
         virtual bool query(const state *state, bool presort = true) override
@@ -602,11 +616,13 @@ namespace NS_itasks
             {
                 print_mut.lock();
                 if(verbose) {
+                    lock_guard<mutex> lk(print_mut);
                     cout << "\t\tSorting task states by increasing c_i - p_i" << endl;
                 }
                 std::sort(sorted_indices.begin(), sorted_indices.end(), [&state](auto left, auto right)
                           { return compare_tasks(state, left, right); });
                 if(verbose) {
+                    lock_guard<mutex> lk(print_mut);
                     cout << "\t\tThe order of visiting M trees is following:";
                     for (auto id: sorted_indices) {
                         cout << " " << id;
@@ -616,9 +632,7 @@ namespace NS_itasks
                 print_mut.unlock();
             }
 
-            if (verbose) {
-                cout << "\t\tWaiting till thread pool is ready" << endl;
-            }
+            auto thread_pool_waiting_time_start = high_resolution_clock::now();
             while (true)
             {
                 dominating_mut->lock();
@@ -633,20 +647,25 @@ namespace NS_itasks
             *dominating_stop = false;
             *finished_dominating_jobs = 0;
             if (verbose) {
-                cout << "\t\tThread pool is ready" << endl;
-                cout << "\t\tStarting threads for " << n <<" state being dominated examination:" << endl;
+                lock_guard<mutex> lk(print_mut);
+                double thread_pool_waiting_time = 
+                    duration_cast<chrono::nanoseconds>(high_resolution_clock::now() - thread_pool_waiting_time_start).count();
+                cout << "\t\tThread pool is ready in" << (thread_pool_waiting_time * 1e-6) << "ms" << endl;
+                cout << "\t\tDominating state search in threads:" << endl;
             }
             for (auto ind : sorted_indices)
             {
                 if (verbose) {
-                    cout << "\t\t\tStarting thread for examination of " << ind << "th task state in M_" << ind << endl;
+                    lock_guard<mutex> lk(print_mut);
+                    cout << "\t\t\tStarting thread for examination of (" << state->c << ", " << state->p << ") task state in M" << ind << endl;
                 }
-                pool->enqueue([this, ind, state]
+                dominating_pool->enqueue([this, ind, state]
                               { dims[ind].query(ind, state, N, dominating_counter, dominating_stop, dominating_query_n, dominating_res, finished_dominating_jobs, dominating_mut, cv_dominating, cv_m_dominating); });
             }
             
             unique_lock<std::mutex> lk(*cv_m_dominating);
             if (verbose) {
+                lock_guard<mutex> lk(print_mut);
                 cout << "\t\tWaiting till stop flag is set" << endl;
             }
             cv_dominating->wait(lk, [this]
@@ -696,8 +715,10 @@ namespace NS_itasks
             if(verbose) {
                 print_mut.lock();
                 if (*dominating_res) {
+                    lock_guard<mutex> lk(print_mut);
                     cout << "\tState is dominated!" << endl;
                 } else {
+                    lock_guard<mutex> lk(print_mut);
                     cout << "\tState is not dominated!" << endl;
                 }
                 print_mut.unlock();
@@ -728,8 +749,8 @@ namespace NS_itasks
         ~FastMultidimSearchMultiThread()
         {
             // Common
-            delete pool;
-            delete pool2;
+            delete dominating_pool;
+            delete insertion_pool;
             dims.clear();
 
             // Insertion
@@ -788,8 +809,8 @@ namespace NS_itasks
         condition_variable *cv_dominated = new condition_variable();
         mutex *cv_m_dominated = new mutex();
 
-        ThreadPool *pool;
-        ThreadPool *pool2;
+        ThreadPool *dominating_pool;
+        ThreadPool *insertion_pool;
         vector<FastSearchMultiThread> dims;
         bool *insertion_stop = new bool();
         unsigned short int *finished_insertion_jobs = new unsigned short int();
@@ -986,6 +1007,7 @@ namespace NS_itasks
      */
     bool update_map(const state *currentState, IFastMultidimSearch *visitedStates, const bool removeStates)
     {
+        
         if (verbose) cout << "Examining alg state for map update:\n";
         // Check if some state in map dominates state s
         auto dominatingSearchStart = high_resolution_clock::now();
